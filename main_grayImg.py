@@ -63,26 +63,7 @@ def myNumExtractor(s):
     tail = s[len(head):]
     return int(tail)
 
-def np2img_save(array, save_jpg):
-    ipdb.set_trace()
-    tmp_img = db.wv2img(array, wv_dims=(0,1), split_axis=2 )
-    tmp_img = db.doInvPad(tmp_img)
-    tmp_img[tmp_img<0.0]=0.0
-    tmp_img[tmp_img>255.0]=255.0
-    im = img.fromarray(np.uint8(tmp_img[:,:,0]),'L')
-    im.save(save_jpg)
-    
-def np2img_save_(array, label, save_jpg):
-    tmp_img = db.wv2img(array)
-    tmp_lbl = db.wv2img(label)
-    tmp_img = db.doInvPad(tmp_img)
-    tmp_lbl = db.doInvPad(tmp_lbl)
-    print(" -- %.4f" % np.log(PIXEL_MAX/np.sqrt(np.mean((tmp_img-tmp_lbl)**2)))*_20_div_Log10)
-    error_  = np.absolute(tmp_img-tmp_lbl)
-    error_[error_>255.0]=255.0
 
-    im = img.fromarray(np.uint8(error_[0,:,:,0]),'L')
-    im.save(save_jpg)
     
 ##
 with tf.Session() as sess:
@@ -147,20 +128,5 @@ with tf.Session() as sess:
         ## saving jpg
         batch_data, batch_labels = db.getBatch(isTrain=0, batchStart=7, batchEnd=10)
         prediction_test = sess.run(net_out, feed_dict={data_node : batch_data, label_node : batch_labels})
-        
-        ## image save
-        np2img_save(prediction_test[0,:,:,:], log_dir+'/test1-result.jpeg')
-        np2img_save(batch_data[0,:,:,:], log_dir+'/test1-input.jpeg')
-        np2img_save(batch_labels[0,:,:,:], log_dir+'/test1-label.jpeg')
-        np2img_save_(prediction_test[0,:,:,:], batch_labels[0,:,:,:],  log_dir+'/test1-error.jpeg')
-        
-        np2img_save(prediction_test[1,:,:,:], log_dir+'/test1-result.jpeg')
-        np2img_save(batch_data[1,:,:,:], log_dir+'/test1-input.jpeg')
-        np2img_save(batch_labels[1,:,:,:], log_dir+'/test1-label.jpeg')
-        np2img_save_(prediction_test[1,:,:,:], batch_labels[0,:,:,:],  log_dir+'/test1-error.jpeg')
-        
-        np2img_save(prediction_test[2,:,:,:], log_dir+'/test1-result.jpeg')
-        np2img_save(batch_data[2,:,:,:], log_dir+'/test1-input.jpeg')
-        np2img_save(batch_labels[2,:,:,:], log_dir+'/test1-label.jpeg')
-        np2img_save_(prediction_test[2,:,:,:], batch_labels[0,:,:,:],  log_dir+'/test1-error.jpeg')
+
         
