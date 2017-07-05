@@ -1,6 +1,5 @@
 from os import listdir, path, makedirs
 
-from PIL import Image as img
 import numpy as np
 import tensorflow as tf
 import tensorflow.contrib.layers as li
@@ -9,6 +8,7 @@ import ipdb
 
 from BSD500_gray import imgSet_wv
 from nets import denoising_net as model
+
 
 db    = imgSet_wv(l_dir_train='F:/flagship/denoising/data/train_gray/', l_dir_test='F:/flagship/denoising/data/test_gray/', noise_stdev=15, wv_type='haar')
 totalN = db.getTotalN()   
@@ -62,7 +62,6 @@ def myNumExtractor(s):
     head = s.rstrip('0123456789')
     tail = s[len(head):]
     return int(tail)
-
 
     
 ##
@@ -126,7 +125,15 @@ with tf.Session() as sess:
         print("The model saved in file :"+path_saved)
         
         ## saving jpg
-        batch_data, batch_labels = db.getBatch(isTrain=0, batchStart=7, batchEnd=10)
+        batch_data, batch_labels = db.getABatch(isTrain=0, batchStart=7)
         prediction_test = sess.run(net_out, feed_dict={data_node : batch_data, label_node : batch_labels})
-
+        db.np2img_save(batch_data, prediction_test, batch_labels, log_dir, save_str='test1')
+        
+        batch_data, batch_labels = db.getABatch(isTrain=0, batchStart=8)
+        prediction_test = sess.run(net_out, feed_dict={data_node : batch_data, label_node : batch_labels})
+        db.np2img_save(batch_data, prediction_test, batch_labels, log_dir, save_str='test2')
+        
+        batch_data, batch_labels = db.getABatch(isTrain=0, batchStart=9)
+        prediction_test = sess.run(net_out, feed_dict={data_node : batch_data, label_node : batch_labels})
+        db.np2img_save(batch_data, prediction_test, batch_labels, log_dir, save_str='test3')
         

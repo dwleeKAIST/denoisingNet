@@ -7,6 +7,12 @@ import random
 import pywt
 import ipdb
 
+PIXEL_MAX     = 255.0
+_20_div_Log10 = 8.6859
+
+
+#########################
+## [ batch, imgY, imgX, channel ]
 class imgSet:
     def __init__(self, l_dir_train, l_dir_test, noise_stdev=0.5):
         self.l_dir_train    = l_dir_train
@@ -28,7 +34,7 @@ class imgSet:
         self.train_id = np.arange(self.train_N)
         self.test_id  = np.arange(self.test_N)
         
-    def getBatch(self, isTrain, batchStart, batchEnd, aug=1):
+    def getABatch(self, isTrain, batchStart, aug=1):
         if isTrain:
             #training set
             ids = self.train_id
@@ -41,31 +47,16 @@ class imgSet:
             l_dir   = self.l_dir_test
             aug=0
 
-        batchEnd   = min(batchEnd, len(ids))
-        cur_idset = ids[batchStart:batchEnd]
-        batch_num = batchEnd-batchStart
-        #labels    = np.empty([batch_num, self.sz[0], self.sz[1], self.sz[2]])
-        
-        
-        for i in range(batch_num):
-            fname = l_dir+jpgList[cur_idset[i]]
-            labels = np.asarray(Image.open(fname,'r'))
-            
-            sz = labels.shape
-            if len(sz)==2:
-                labels = labels.reshape(1,sz[0],sz[1],1)
-            else:
-                labels = labels.reshape(1,sz[0],sz[1],sz[2])
+        fname           = l_dir+jpgList[ids[batchStart]]
+        labels        = np.asarray(Image.open(fname,'r'))
+        if aug==1:
+            labels        = self.getAug(labels)
         
         data = labels + np.random.normal(0, self.stdev, labels.shape)
         data[data<0.0]   = 0.0
         data[data>255.0] = 255.0        
-        
-        if aug==1:
-            data, idx1, idx2  = self.getAug(data)
-            labels = self.getAug(labels, idx1, idx2)
-            
-        return data,labels
+        sz               = data.shape
+        return data.reshape(1,sz[0],sz[1],1), labels.reshape(1,sz[0],sz[1],1)
     
     def getPatch(self, img1, img2, patchSize):
         sz = img1.shape
@@ -116,8 +107,8 @@ class imgSet_wv(imgSet):
         return pywt.idwt2( (LL, (LH, HL, HH)), self.wv_type, axes=wv_dims)
 
     
-    def getBatch(self, isTrain, batchStart, batchEnd):      
-        data_img, labels_img = imgSet.getBatch(self, isTrain, batchStart, batchEnd)        
+    def getABatch(self, isTrain, batchStart):      
+        data_img, labels_img = imgSet.getABatch(self, isTrain, batchStart)        
         return self.img2wv(self.doPad(self.checkPad(data_img))), self.img2wv(self.doPad(self.checkPad(labels_img)))
     
     ## get batch with patch extraction on wavelet domain
@@ -184,4 +175,32 @@ class imgSet_wv(imgSet):
     
     def getDimForNet(self):
         return self.sz_wv
-               
+        
+    def np2img_save(self, inp_img, rec_img, lbl_img, log_dir, save_str='test1'):
+        tmp_inp = self.wv2img(inp_img, wv_dims=(1,2), split_axis=3 )
+        tmp_img = self.wv2img(rec_img, wv_dims=(1,2), split_axis=3 )
+        tmp_lbl = self.wv2img(lbl_img, wv_dims=(1,2), split_axis=3 )
+        tmp_inp = self.doInvPad(tmp_inp)
+        tmp_img = self.doInvPad(tmp_img)
+        tmp_lbl = self.doInvPad(tmp_lbl)
+        
+        PSNR = np.log(PIXEL_MAX/np.sqrt(np.mean((tmp_img-tmp_lbl)**2)))*_20_div_Log10
+        print(" -- %.4f" % PSNR)
+        tmp_inp[tmp_inp<0.0]   = 0.0
+        tmp_inp[tmp_inp>255.0] = 255.0
+        tmp_img[tmp_img<0.0]   = 0.0
+        tmp_img[tmp_img>255.0] = 255.0
+        tmp_lbl[tmp_lbl<0.0]   = 0.0
+        tmp_lbl[tmp_lbl>255.0] = 255.0
+        error_  = np.absolute(tmp_img-tmp_lbl)
+        error_[error_>255.0]=255.0
+        
+        im = Image.fromarray(np.uint8(tmp_inp[0,:,:,0]),'L')
+        im.save(log_dir+'/'+save_str+'-inp.jpg')
+        im = Image.fromarray(np.uint8(tmp_img[0,:,:,0]),'L')
+        im.save(log_dir+'/'+save_str+'-rec.jpg')
+        im = Image.fromarray(np.uint8(tmp_lbl[0,:,:,0]),'L')
+        im.save(log_dir+'/'+save_str+'-lbl.jpg')
+        im = Image.fromarray(np.uint8(error_[0,:,:,0]),'L')
+        im.save(log_dir+'/'+save_str+'-err.jpg')
+
