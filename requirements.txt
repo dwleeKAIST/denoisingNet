@@ -3,3 +3,4 @@ matplotlib
 Pillow
 pywavelets
 numpy==1.13.0
+dask==0.15.0

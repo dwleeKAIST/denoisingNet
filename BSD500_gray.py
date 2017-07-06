@@ -5,7 +5,6 @@ import numpy as np
 import tensorflow as tf
 import random
 import pywt
-import ipdb
 
 PIXEL_MAX     = 255.0
 _20_div_Log10 = 8.6859
