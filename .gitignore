@@ -4,3 +4,4 @@ result/
 nets/__pycache__/
 nets/.ipynb_checkpoints
 src/
+infer_faceDenoise.py
