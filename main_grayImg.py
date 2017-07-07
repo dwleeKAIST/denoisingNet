@@ -9,7 +9,7 @@ from BSD500_gray import imgSet_wv
 from nets import denoising_net as model
 
 
-db    = imgSet_wv(l_dir_train='F:/flagship/denoising/data/train_gray/', l_dir_test='F:/flagship/denoising/data/test_gray/', noise_stdev=15, wv_type='haar')
+db    = imgSet_wv(l_dir_train='./data/train_gray/', l_dir_test='./data/test_gray/', noise_stdev=15, wv_type='haar')
 totalN = db.getTotalN()   
 
 BATCH_SIZE = 32

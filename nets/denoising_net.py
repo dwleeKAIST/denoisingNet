@@ -54,16 +54,15 @@ def net(data, residual_tag, IMG_SIZE_CH = 12):
     out_54b    = tf.nn.relu( tf.add(out_44b, out_53y, "skip5")   ) # skipped connection
     
     #
-    out_6b    =                  conv2d(out_54b,   [3,3, N_FEATURES, N_FEATURES],"6")
+    out_6b    = tf.nn.relu( BN(  conv2d( out_54b,   [3,3, N_FEATURES, N_FEATURES],"6") ) )
     out_7p    = tf.nn.relu( BN(  conv2d( out_6b,   [3,3, N_FEATURES, N_FEATURES],"7") ) )
-    out_8p    = tf.nn.relu( BN(  conv2d( out_7p,   [3,3, N_FEATURES, N_FEATURES],"8") ) )
     
     # Last layer
     if residual_tag:
         # do something
-        out_      = conv2d(out_8p, [3,3,N_FEATURES, IMG_SIZE_CH],"9")
+        out_      = conv2d(out_7p, [3,3,N_FEATURES, IMG_SIZE_CH],"8")
         out       = tf.add(out_, data, "skip0")
     else:
-        out       = conv2d(out_8p, [3,3,N_FEATURES, IMG_SIZE_CH],"9")
+        out       = conv2d(out_7p, [3,3,N_FEATURES, IMG_SIZE_CH],"8")
    
     return out
