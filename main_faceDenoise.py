@@ -1,11 +1,8 @@
-from os import listdir, path, makedirs
-
 import numpy as np
 import tensorflow as tf
-import tensorflow.contrib.layers as li
 import time 
-import ipdb
 
+from os import  path, makedirs
 from LFW_db import LFW_RGB_wv
 from nets import denoising_net as model
 

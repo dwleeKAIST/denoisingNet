@@ -1,10 +1,9 @@
-from os import listdir, path, makedirs
+from os import path, makedirs
 
 import numpy as np
 import tensorflow as tf
-import tensorflow.contrib.layers as li
 import time 
-import ipdb
+
 
 from BSD500_gray import imgSet_wv
 from nets import denoising_net as model
@@ -77,7 +76,7 @@ with tf.Session() as sess:
         tf.global_variables_initializer().run()
         epoch_start=0
     else:
-        print("STRATING from saved model-"+latest_ckpt)
+        print("STARTING from saved model-"+latest_ckpt)
         saver.restore(sess,latest_ckpt)
         epoch_start = myNumExtractor(latest_ckpt)+1
     
